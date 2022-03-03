@@ -277,9 +277,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   I18nService.setVuei18nInstance(i18n);
 
-  // if (!Utils.isOneOffWindow()) {
-  //   ipcRenderer.send('register-in-crash-handler', { pid: process.pid, critical: false });
-  // }
+  if (!Utils.isOneOffWindow() && !Utils.isWorkerWindow()) {
+    ipcRenderer.send('register-in-crash-handler', { pid: process.pid, critical: false });
+  }
+
+  // obs.NodeObs.PatchTerminateProcess();
 
   // The worker window can safely access services immediately
   if (Utils.isWorkerWindow()) {
@@ -301,6 +303,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       ),
     );
 
+    obs.NodeObs.SetCrashHandlerPipe(process.env.IPC_UUID);
+
     await obsUserPluginsService.initialize();
 
     // Initialize OBS API
@@ -313,8 +317,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (apiResult !== obs.EVideoCodes.Success) {
       const message = apiInitErrorResultToMessage(apiResult);
       showDialog(message);
-
-      // ipcRenderer.send('unregister-in-crash-handler', { pid: process.pid });
 
       obs.NodeObs.OBS_API_destroyOBS_API();
 
@@ -348,7 +350,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         this.isRefreshing = true;
 
         // unregister current window from the crash handler
-        ipcRenderer.send('unregister-in-crash-handler', { pid: process.pid });
+        if (!Utils.isWorkerWindow()) {
+          ipcRenderer.send('unregister-in-crash-handler', { pid: process.pid });
+        }
 
         // give the window some time to finish unmounting before reload
         Utils.sleep(100).then(() => {

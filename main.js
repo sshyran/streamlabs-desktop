@@ -253,7 +253,7 @@ const waitingVuexStores = [];
 let workerInitFinished = false;
 
 async function startApp() {
-  // const crashHandler = require('crash-handler');
+  const crashHandler = require('crash-handler');
   const isDevMode = process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test';
   const crashHandlerLogPath = app.getPath('userData');
 
@@ -263,22 +263,22 @@ async function startApp() {
 
   await bundleUpdater(__dirname);
 
-  // crashHandler.startCrashHandler(
-  //   app.getAppPath(),
-  //   process.env.SLOBS_VERSION,
-  //   isDevMode.toString(),
-  //   crashHandlerLogPath,
-  //   process.env.IPC_UUID,
-  // );
-  // crashHandler.registerProcess(pid, false);
+  crashHandler.startCrashHandler(
+    app.getAppPath(),
+    process.env.SLOBS_VERSION,
+    isDevMode.toString(),
+    crashHandlerLogPath,
+    process.env.IPC_UUID,
+  );
+  crashHandler.registerProcess(pid, false);
 
-  // ipcMain.on('register-in-crash-handler', (event, arg) => {
-  //   crashHandler.registerProcess(arg.pid, arg.critical);
-  // });
+  ipcMain.on('register-in-crash-handler', (event, arg) => {
+    crashHandler.registerProcess(arg.pid, arg.critical);
+  });
 
-  // ipcMain.on('unregister-in-crash-handler', (event, arg) => {
-  //   crashHandler.unregisterProcess(arg.pid);
-  // });
+  ipcMain.on('unregister-in-crash-handler', (event, arg) => {
+    crashHandler.unregisterProcess(arg.pid);
+  });
 
   remote.initialize();
 
@@ -301,17 +301,17 @@ async function startApp() {
       handleFinishedReport();
     });
 
-    crashReporter.start({
-      productName: 'streamlabs-obs',
-      companyName: 'streamlabs',
-      ignoreSystemCrashHandler: true,
-      submitURL:
-        'https://sentry.io/api/1283430/minidump/?sentry_key=01fc20f909124c8499b4972e9a5253f2',
-      extra: {
-        'sentry[release]': pjson.version,
-        processType: 'main',
-      },
-    });
+    // crashReporter.start({
+    //   productName: 'streamlabs-obs',
+    //   companyName: 'streamlabs',
+    //   ignoreSystemCrashHandler: true,
+    //   submitURL:
+    //     'https://sentry.io/api/1283430/minidump/?sentry_key=01fc20f909124c8499b4972e9a5253f2',
+    //   extra: {
+    //     'sentry[release]': pjson.version,
+    //     processType: 'main',
+    //   },
+    // });
   }
 
   workerWindow = new BrowserWindow({
@@ -366,6 +366,10 @@ async function startApp() {
   mainWindowState.manage(mainWindow);
 
   mainWindow.removeMenu();
+
+  const osn = require('obs-studio-node');
+  osn.NodeObs.PatchTerminateProcess();
+  // osn.NodeObs.OBS_API_initAPI();
 
   mainWindow.on('close', e => {
     if (!shutdownStarted) {
@@ -448,7 +452,7 @@ async function startApp() {
     }
   });
 
-  if (process.env.SLOBS_PRODUCTION_DEBUG) openDevTools();
+  openDevTools();
 
   // simple messaging system for services between windows
   // WARNING! renderer windows use synchronous requests and will be frozen
@@ -572,31 +576,31 @@ ipcMain.on('protocolLinkReady', () => {
 });
 
 app.on('ready', () => {
-  if (
-    !process.argv.includes('--skip-update') &&
-    (process.env.NODE_ENV === 'production' || process.env.SLOBS_FORCE_AUTO_UPDATE)
-  ) {
-    // Windows uses our custom update, Mac uses electron-updater
-    if (process.platform === 'win32') {
-      const updateInfo = {
-        baseUrl: 'https://slobs-cdn.streamlabs.com',
-        version: pjson.version,
-        exec: process.argv,
-        cwd: process.cwd(),
-        waitPids: [process.pid],
-        appDir: path.dirname(app.getPath('exe')),
-        tempDir: path.join(app.getPath('temp'), 'slobs-updater'),
-        cacheDir: app.getPath('userData'),
-        versionFileName: `${releaseChannel}.json`,
-      };
+  // if (
+  //   !process.argv.includes('--skip-update') &&
+  //   (process.env.NODE_ENV === 'production' || process.env.SLOBS_FORCE_AUTO_UPDATE)
+  // ) {
+  //   // Windows uses our custom update, Mac uses electron-updater
+  //   if (process.platform === 'win32') {
+  //     const updateInfo = {
+  //       baseUrl: 'https://slobs-cdn.streamlabs.com',
+  //       version: pjson.version,
+  //       exec: process.argv,
+  //       cwd: process.cwd(),
+  //       waitPids: [process.pid],
+  //       appDir: path.dirname(app.getPath('exe')),
+  //       tempDir: path.join(app.getPath('temp'), 'slobs-updater'),
+  //       cacheDir: app.getPath('userData'),
+  //       versionFileName: `${releaseChannel}.json`,
+  //     };
 
-      bootstrap(updateInfo, startApp, app.exit);
-    } else {
-      new Updater(startApp, releaseChannel).run();
-    }
-  } else {
-    startApp();
-  }
+  //     bootstrap(updateInfo, startApp, app.exit);
+  //   } else {
+  //     new Updater(startApp, releaseChannel).run();
+  //   }
+  // } else {
+  startApp();
+  // }
 });
 
 ipcMain.on('openDevTools', () => {

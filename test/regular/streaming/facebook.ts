@@ -14,17 +14,17 @@ import { click, focusChild, focusMain, select } from '../../helpers/modules/core
 
 useSpectron();
 
-test('Streaming to a Facebook Page', async t => {
-  await logIn('facebook', { multistream: false });
-  await goLive({
-    title: 'SLOBS Test Stream',
-    facebookGame: 'Fortnite',
-    description: 'SLOBS Test Stream Description',
-  });
-  t.true(await chatIsVisible(), 'Chat should be visible');
-  await stopStream();
-  t.pass();
-});
+// test('Streaming to a Facebook Page', async t => {
+//   await logIn('facebook', { multistream: false });
+//   await goLive({
+//     title: 'SLOBS Test Stream',
+//     facebookGame: 'Fortnite',
+//     description: 'SLOBS Test Stream Description',
+//   });
+//   t.true(await chatIsVisible(), 'Chat should be visible');
+//   await stopStream();
+//   t.pass();
+// });
 
 test.skip('Streaming to the scheduled event on Facebook page', async t => {
   await logIn('facebook', { multistream: false });
