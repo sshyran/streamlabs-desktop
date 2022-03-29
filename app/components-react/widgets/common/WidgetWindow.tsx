@@ -18,7 +18,7 @@ import { getDefined } from '../../../util/properties-type-guards';
 // ChatHighlight
 // Credits
 // DonationTicker
-// EmoteWall
+import { EmoteWall, EmoteWallModule } from '../EmoteWall';
 // EventList
 // MediaShare
 // Poll
@@ -26,6 +26,7 @@ import { getDefined } from '../../../util/properties-type-guards';
 // SponsorBanner
 // StreamBoss
 // TipJar
+import { GameWidget, GameWidgetModule } from '../GameWidget';
 import { ViewerCount, ViewerCountModule } from '../ViewerCount';
 import { useSubscription } from '../../hooks/useSubscription';
 
@@ -44,7 +45,7 @@ export const components = {
   // ChatHighlight
   // Credits
   // DonationTicker
-  // EmoteWall
+  EmoteWall: [EmoteWall, EmoteWallModule],
   // EventList
   // MediaShare
   // Poll
@@ -53,6 +54,7 @@ export const components = {
   // StreamBoss
   // TipJar
   ViewerCount: [ViewerCount, ViewerCountModule],
+  GameWidget: [GameWidget, GameWidgetModule],
 };
 
 /**

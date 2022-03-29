@@ -1,16 +1,15 @@
 import { AnchorPoint } from '../../util/ScalableRectangle';
-import { $t } from '../i18n';
 import { TAlertType } from './alerts-config';
+import { WidgetType } from './widgets-data';
 
-export type TWidgetType = 'AlertBox' | 'ViewerCount';
+export type TWidgetType =
+  | WidgetType.AlertBox
+  | WidgetType.ViewerCount
+  | WidgetType.GameWidget
+  | WidgetType.EmoteWall;
 
 export interface IWidgetConfig {
   type: TWidgetType;
-  name: string;
-  description: string;
-  demoVideo: boolean;
-  demoFilename: string;
-  supportList: string[];
 
   // Default transform for the widget
   defaultTransform: {
@@ -45,13 +44,8 @@ export interface IWidgetConfig {
 
 export function getWidgetsConfig(host: string, token: string): Record<TWidgetType, IWidgetConfig> {
   return {
-    AlertBox: {
-      type: 'AlertBox',
-      name: $t('Alertbox'),
-      description: $t('Thanks viewers with notification popups.'),
-      demoVideo: true,
-      demoFilename: 'source-alertbox.mp4',
-      supportList: [$t('Donations'), $t('Subscriptions'), $t('Follows'), $t('Bits'), $t('Hosts')],
+    [WidgetType.AlertBox]: {
+      type: WidgetType.AlertBox,
 
       defaultTransform: {
         width: 800,
@@ -67,7 +61,7 @@ export function getWidgetsConfig(host: string, token: string): Record<TWidgetTyp
       },
 
       url: `https://${host}/alert-box/v3/${token}`,
-      previewUrl: `https://${host}}/alert-box/v3/${token}`,
+      previewUrl: `https://${host}/alert-box/v3/${token}`,
       dataFetchUrl: `https://${host}/api/v5/slobs/widget/alertbox?include_linked_integrations_only=true&primary_only=false`,
       settingsSaveUrl: `https://${host}/api/v5/slobs/widget/alertbox`,
       settingsUpdateEvent: 'filteredAlertBoxSettingsUpdate',
@@ -75,14 +69,8 @@ export function getWidgetsConfig(host: string, token: string): Record<TWidgetTyp
       customFieldsAllowed: false,
     },
 
-    ViewerCount: {
-      type: 'ViewerCount',
-      name: $t('Viewer Count'),
-      description: $t('Show off your viewers from multiple platforms.'),
-      demoVideo: false,
-      demoFilename: 'source-viewer-count.png',
-      supportList: ['YouTube', 'Twitch', 'Facebook'],
-      url: `https://${host}/widgets/viewer-count?token=${token}`,
+    [WidgetType.ViewerCount]: {
+      type: WidgetType.ViewerCount,
 
       defaultTransform: {
         width: 600,
@@ -97,6 +85,7 @@ export function getWidgetsConfig(host: string, token: string): Record<TWidgetTyp
         height: 900,
       },
 
+      url: `https://${host}/widgets/viewer-count?token=${token}`,
       previewUrl: `https://${host}/widgets/viewer-count?token=${token}&simulate=1`,
       dataFetchUrl: `https://${host}/api/v5/slobs/widget/viewercount`,
       settingsSaveUrl: `https://${host}/api/v5/slobs/widget/viewercount`,
@@ -104,6 +93,57 @@ export function getWidgetsConfig(host: string, token: string): Record<TWidgetTyp
       customCodeAllowed: true,
       customFieldsAllowed: true,
     },
+
+    [WidgetType.GameWidget]: {
+      type: WidgetType.GameWidget,
+
+      defaultTransform: {
+        width: 400,
+        height: 450,
+        x: 0.5,
+        y: 0,
+        anchor: AnchorPoint.North,
+      },
+
+      settingsWindowSize: {
+        width: 850,
+        height: 700,
+      },
+
+      url: `https://${host}/widgets/game-widget?token=${token}`,
+      previewUrl: `https://${host}/widgets/game-widget?token=${token}&simulate=1`,
+      dataFetchUrl: `https://${host}/api/v5/slobs/widget/game-widget`,
+      settingsSaveUrl: `https://${host}/api/v5/slobs/widget/game-widget`,
+      settingsUpdateEvent: 'gameWidgetSettingsUpdate',
+      customCodeAllowed: false,
+      customFieldsAllowed: false,
+    },
+
+    [WidgetType.EmoteWall]: {
+      type: WidgetType.EmoteWall,
+
+      defaultTransform: {
+        width: 1280,
+        height: 720,
+        x: 0,
+        y: 0,
+        anchor: AnchorPoint.NorthWest,
+      },
+
+      settingsWindowSize: {
+        width: 600,
+        height: 900,
+      },
+
+      url: `https://${host}/widgets/emote-wall?token=${token}`,
+      previewUrl: `https://${host}/widgets/emote-wall?token=${token}&simulate=1`,
+      dataFetchUrl: `https://${host}/api/v5/slobs/widget/emote-wall`,
+      settingsSaveUrl: `https://${host}/api/v5/slobs/widget/emote-wall`,
+      settingsUpdateEvent: 'emoteWallSettingsUpdate',
+      customCodeAllowed: true,
+      customFieldsAllowed: true,
+    },
+
     // TODO:
     // BitGoal: {
     //
@@ -148,10 +188,6 @@ export function getWidgetsConfig(host: string, token: string): Record<TWidgetTyp
     // DonationTicker: {
     //
     //  },
-
-    // EmoteWall: {
-    //
-    // },
 
     // EventList: {
     //

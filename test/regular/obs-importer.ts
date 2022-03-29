@@ -39,15 +39,15 @@ test('OBS Importer', async t => {
   await logIn(t, 'twitch', { prime: false }, false, true);
   await sleep(1000);
   await (await t.context.app.client.$('span=Skip')).click();
-  await (await t.context.app.client.$('div=Choose Starter')).click();
 
   // import from OBS
   await click('div=Import from OBS Studio');
   await click('div=Start');
 
   await (await t.context.app.client.$('button=Skip')).click();
+  await (await t.context.app.client.$('div=Choose Free')).click();
 
-  await waitForDisplayed('.scene-collections-wrapper');
+  await waitForDisplayed('[data-name=SceneSelector]');
 
   // check collection 1 and sources
   await switchCollection('Collection 1');
