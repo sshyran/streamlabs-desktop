@@ -301,20 +301,20 @@ async function startApp() {
       handleFinishedReport();
     });
 
-    crashReporter.start({
-      productName: 'streamlabs-obs',
-      companyName: 'streamlabs',
-      ignoreSystemCrashHandler: true,
-      submitURL: process.env.SLOBS_PREVIEW
-        ? pjson.sentryBackendClientPreviewURL
-        : pjson.sentryBackendClientURL,
-      extra: {
-        processType: 'main',
-      },
-      globalExtra: {
-        'sentry[release]': pjson.version,
-      },
-    });
+    // crashReporter.start({
+    //   productName: 'streamlabs-obs',
+    //   companyName: 'streamlabs',
+    //   ignoreSystemCrashHandler: true,
+    //   submitURL: process.env.SLOBS_PREVIEW
+    //     ? pjson.sentryBackendClientPreviewURL
+    //     : pjson.sentryBackendClientURL,
+    //   extra: {
+    //     processType: 'main',
+    //   },
+    //   globalExtra: {
+    //     'sentry[release]': pjson.version,
+    //   },
+    // });
   }
 
   workerWindow = new BrowserWindow({
