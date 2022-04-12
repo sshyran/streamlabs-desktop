@@ -38,6 +38,7 @@ import process from 'process';
 import { MetricsService } from 'services/metrics';
 import { UsageStatisticsService } from 'services/usage-statistics';
 import * as remote from '@electron/remote';
+import { EIPCError } from '../obs-api';
 
 const { ipcRenderer } = electron;
 const slobsVersion = Utils.env.SLOBS_VERSION;
@@ -289,7 +290,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     window['obs'] = obs;
 
     // Host a new OBS server instance
-    obs.IPC.host(remote.process.env.IPC_UUID);
+    const ipcResult = obs.IPC.host(remote.process.env.IPC_UUID);
+
+    const handleEarlyShutdown = () => {
+      ipcRenderer.send('unregister-in-crash-handler', { pid: process.pid });
+
+      obs.NodeObs.InitShutdownSequence();
+      obs.IPC.disconnect();
+
+      electron.ipcRenderer.send('shutdownComplete');
+    };
+
+    if (ipcResult === EIPCError.MISSING_DEPENDENCY) {
+      console.log('IPC INIT RESULT: MISSING_DEPENDENCY');
+      handleEarlyShutdown();
+      return;
+    } else if (ipcResult === EIPCError.STILL_RUNNING) {
+      console.log('IPC INIT RESULT: STILL_RUNNING');
+      handleEarlyShutdown();
+      return;
+    } else if (ipcResult === EIPCError.VERSION_MISMATCH) {
+      console.log('IPC INIT RESULT: VERSION_MISMATCH');
+      handleEarlyShutdown();
+      return;
+    } else if (ipcResult === EIPCError.OTHER_ERROR) {
+      console.log('IPC INIT RESULT: OTHER_ERROR');
+      handleEarlyShutdown();
+      return;
+    } else if (ipcResult === EIPCError.NORMAL_EXIT) {
+      console.log('IPC INIT RESULT: NORMAL_EXIT');
+    }
+
     obs.NodeObs.SetWorkingDirectory(
       path.join(
         remote.app.getAppPath().replace('app.asar', 'app.asar.unpacked'),
@@ -312,12 +343,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const message = apiInitErrorResultToMessage(apiResult);
       showDialog(message);
 
-      ipcRenderer.send('unregister-in-crash-handler', { pid: process.pid });
-
-      obs.NodeObs.InitShutdownSequence();
-      obs.IPC.disconnect();
-
-      electron.ipcRenderer.send('shutdownComplete');
+      handleEarlyShutdown();
       return;
     }
 
