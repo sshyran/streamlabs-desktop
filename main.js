@@ -538,6 +538,27 @@ async function startApp() {
 const haDisableFile = path.join(app.getPath('userData'), 'HADisable');
 if (fs.existsSync(haDisableFile)) app.disableHardwareAcceleration();
 
+// Set up GPU process crash listener due to chromium bug
+// NOTE: We believe this can be removed after electron 18
+app.on('child-process-gone', (e, info) => {
+  // TODO: Remove
+  console.log('Child Process Gone', info);
+
+  if (info.type === 'GPU' && info.reason === 'crashed' && !workerInitFinished) {
+    const result = dialog.showMessageBoxSync({
+      message:
+        'An unexpected error occurred while initializing hardware acceleration for Streamlabs Desktop. This is sometimes caused by installing Streamlabs Desktop outside of your Program Files directory. You can try reinstalling Streamlabs Desktop to Program Files, or you can try disabling hardware acceleration, which can hurt performance but will likely resolve the issue.',
+      buttons: ['Exit', 'Disable Hardware Acceleration'],
+    });
+
+    if (result === 1) {
+      fs.closeSync(fs.openSync(haDisableFile, 'w'));
+    }
+
+    app.exit();
+  }
+});
+
 app.setAsDefaultProtocolClient('slobs');
 
 app.on('second-instance', (event, argv, cwd) => {
