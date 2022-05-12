@@ -49,6 +49,7 @@ export function DonationTicker() {
             min={0}
             max={1000}
             tooltip={tips.maxDonationsTooltip}
+            uncontrolled={false}
           />
           <SliderInput
             label={$t('Text Scroll Speed')}
