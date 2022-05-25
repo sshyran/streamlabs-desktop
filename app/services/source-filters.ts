@@ -390,10 +390,19 @@ export class SourceFiltersService extends StatefulService<IFiltersServiceState> 
     const obsFilter = this.getObsFilter(sourceId, filterName);
     const obsInput = this.sourcesService.views.getSource(sourceId).getObsInput();
     const movement = delta > 0 ? EOrderMovement.Down : EOrderMovement.Up;
+    console.log(
+      'OBS FILTER ORDER BEFORE',
+      obsInput.filters.map(f => f.name),
+    );
     let i = Math.abs(delta);
     while (i--) {
+      console.log('Calling setFilterOrder with args', obsFilter, movement);
       obsInput.setFilterOrder(obsFilter, movement);
     }
+    console.log(
+      'OBS FILTER ORDER AFTER',
+      obsInput.filters.map(f => f.name),
+    );
     this.filtersReordered.next();
   }
 
