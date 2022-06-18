@@ -19,6 +19,7 @@ import Translate from 'components-react/shared/Translate';
 import useBaseElement from './hooks';
 import styles from './SceneSelector.m.less';
 
+<<<<<<< Updated upstream
 function SourceSelector() {
   const {
     ScenesService,
@@ -50,6 +51,50 @@ function SourceSelector() {
     // recursive function for transform SceneNode[] to antd DataNode[]
     const getTreeNodes = (sceneNodes: TSceneNode[]): DataNode[] => {
       return sceneNodes.map(sceneNode => {
+=======
+interface ISourceMetadata {
+  title: string;
+  icon: string;
+  isVisible: boolean;
+  isLocked: boolean;
+  isStreamVisible: boolean;
+  isRecordingVisible: boolean;
+  isFolder: boolean;
+  parentId?: string;
+}
+
+class SourceSelectorModule {
+  private scenesService = inject(ScenesService);
+  private sourcesService = inject(SourcesService);
+  private selectionService = inject(SelectionService);
+  private editorCommandsService = inject(EditorCommandsService);
+  private streamingService = inject(StreamingService);
+  private audioService = inject(AudioService);
+
+  sourcesTooltip = $t('The building blocks of your scene. Also contains widgets.');
+  addSourceTooltip = $t('Add a new Source to your Scene. Includes widgets.');
+  removeSourcesTooltip = $t('Remove Sources from your Scene.');
+  openSourcePropertiesTooltip = $t('Open the Source Properties.');
+  addGroupTooltip = $t('Add a Group so you can move multiple Sources at the same time.');
+
+  state = injectState({
+    expandedFoldersIds: [] as string[],
+    sourceMetadata: {} as { [sceneNodeId: string]: ISourceMetadata },
+  });
+
+  nodeRefs = {};
+
+  callCameFromInsideTheHouse = false;
+
+  get treeData() {
+    // recursive function for transforming SceneNode[] to a Tree format of Antd.Tree
+    const getTreeNodes = (sceneNodeIds: string[]): DataNode[] => {
+      if (Object.keys(this.state.sourceMetadata).length < 1) return [];
+      return sceneNodeIds.map(id => {
+        if (!this.nodeRefs[id]) this.nodeRefs[id] = React.createRef();
+
+        const sceneNode = this.state.sourceMetadata[id];
+>>>>>>> Stashed changes
         let children;
         if (!isItem(sceneNode)) children = getTreeNodes(getChildren(sceneNode));
         const sourceId = isItem(sceneNode) ? sceneNode.sourceId : sceneNode.id;
@@ -65,9 +110,20 @@ function SourceSelector() {
       });
     };
 
+<<<<<<< Updated upstream
     const nodes = scene?.getNodes().filter(n => !n.parentId);
     if (!nodes) return [];
     return getTreeNodes(nodes);
+=======
+    const nodes = this.scene
+      .getNodes()
+      .filter(node => !node.parentId)
+      .map(node => node.id);
+
+    const treeNodes = getTreeNodes(nodes);
+    console.log(treeNodes);
+    return treeNodes;
+>>>>>>> Stashed changes
   }
 
   function getChildren(node: SceneItemFolder) {
@@ -198,17 +254,53 @@ function SourceSelector() {
       activeItemIds.length > 0 && activeItemIds.includes(info.dragNode.key as string)
         ? activeItemIds
         : (info.dragNodesKeys as string[]);
+<<<<<<< Updated upstream
     const nodesToDrop = scene?.getSelection(targetNodes);
     const destNode = scene?.getNode(info.node.key as string);
+=======
+    const nodesToDrop = this.scene.getSelection(targetNodes);
+    const destNode = this.scene.getNode(info.node.key as string);
+    const placement = this.determinePlacement(info);
+
+    nodesToDrop.getRootNodes().forEach(node => {
+      if (placement === EPlaceType.Inside) {
+        this.patchSourceMetadata(node.id, { parentId: destNode?.id });
+      } else {
+        this.patchSourceMetadata(node.id, { parentId: destNode?.parentId });
+      }
+    });
+>>>>>>> Stashed changes
 
     if (!nodesToDrop || !destNode) return;
     await EditorCommandsService.actions.return.executeCommand(
       'ReorderNodesCommand',
       nodesToDrop,
       destNode?.id,
+<<<<<<< Updated upstream
       determinePlacement(info),
     );
     setReorderOperation(reorderOperation + 1);
+=======
+      placement,
+    );
+  }
+
+  makeActive(ids: string[]) {
+    this.callCameFromInsideTheHouse = true;
+    this.selectionService.views.globalSelection.select(ids);
+  }
+
+  @mutation()
+  toggleFolder(nodeId: string) {
+    if (!this.state.sourceMetadata[nodeId].isFolder) return;
+    if (this.state.expandedFoldersIds.includes(nodeId)) {
+      this.state.expandedFoldersIds.splice(this.state.expandedFoldersIds.indexOf(nodeId), 1);
+      this.patchSourceMetadata(nodeId, { icon: 'fa fa-folder' });
+    } else {
+      this.state.expandedFoldersIds.push(nodeId);
+      this.patchSourceMetadata(nodeId, { icon: 'fas fa-folder-open' });
+    }
+>>>>>>> Stashed changes
   }
 
   return (
